@@ -21,8 +21,10 @@ git submodule update
 
 * `libelf`
 * `zlib`
-* kernel version `>=4.17` (we use raw tracepoints)
-* if you cannot use the `bpftool` in this repo, you need to have it installed and change the makefile according to its location, or move it to the `tool`` directory
+* `make`
+* if you cannot use the `bpftool` in this repo, you need to have it installed and change the makefile according to its location, or move it to the `tools` directory
+
+> Please note: Some examples could require kernel versions `>=4.17` since we use raw tracepoints
 
 ## Build and Run a supported application 🏗️
 
@@ -38,3 +40,4 @@ sudo ./page_faults_1
 
 * `page_faults_1`: almost empty instrumentation with 2 tracepoints `page_fault_user` and `page_fault_kernel`.
 * `page_faults_2`: 2 tracepoints `page_fault_user` and `page_fault_kernel` that send some events to userspace through the BPF perf buffer.
+* `tail_table`: use BPF tail call logic.
