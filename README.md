@@ -41,3 +41,5 @@ sudo ./page_faults_1
 * `page_faults_1`: almost empty instrumentation with 2 tracepoints `page_fault_user` and `page_fault_kernel`.
 * `page_faults_2`: 2 tracepoints `page_fault_user` and `page_fault_kernel` that send some events to userspace through the BPF perf buffer.
 * `tail_table`: use BPF tail call logic.
+* `ringbuf_output`: use a PER-CPU ring buffer.
+* `perfbuf_output`: use a PER-CPU perf buffer.
