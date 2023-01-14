@@ -21,6 +21,11 @@ static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va
 	return vfprintf(stderr, format, args);
 }
 
+int handle_event(void *ctx, void *data, size_t data_sz)
+{
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	struct ringbuf_output_bpf *skel;
@@ -109,7 +114,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Create the ringbuf manager */
-	rb_manager = ring_buffer__new(ringbufs_fds[0], NULL, NULL, NULL);
+	rb_manager = ring_buffer__new(ringbufs_fds[0], handle_event, NULL, NULL);
 	if(!rb_manager)
 	{
 		fprintf(stderr, "Failed to instantiate the ringbuf manager. Errno: %d, message: %s\n", errno, strerror(errno));
@@ -122,7 +127,7 @@ int main(int argc, char **argv)
 	 */
 	for(int i = 1; i < n_cpus; i++)
 	{
-		if(ring_buffer__add(rb_manager, ringbufs_fds[i], NULL, NULL))
+		if(ring_buffer__add(rb_manager, ringbufs_fds[i], handle_event, NULL))
 		{
 			fprintf(stderr, "Failed to add the ringbuf map for CPU %d into the manager. Errno: %d, message: %s\n", i, errno, strerror(errno));
 			goto cleanup;
@@ -161,7 +166,7 @@ int main(int argc, char **argv)
 
 	while(true)
 	{
-		printf("Running...\n");
+		printf("Running...%d\n", ring_buffer__consume(rb_manager));
 		sleep(2);
 	}
 

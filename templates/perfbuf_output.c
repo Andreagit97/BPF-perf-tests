@@ -20,10 +20,20 @@ static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va
 	return vfprintf(stderr, format, args);
 }
 
+void handle_event(void *ctx, int cpu, void *data, unsigned int data_sz)
+{
+	return;
+}
+
+void lost_event(void *ctx, int cpu, long long unsigned int data_sz)
+{
+	return;
+}
+
 int main(int argc, char **argv)
 {
 	struct perf_buffer *pb = NULL;
-	struct perfbuf_output_bpf *skel;
+	struct perfbuf_output_bpf *skel = NULL;
 	int err = 0;
 
 	/* Set single buffer dimension */
@@ -80,7 +90,7 @@ int main(int argc, char **argv)
 
 	printf("Chosen PER-CPU buffer size: %ld\n", page_cnt * page_size);
 
-	pb = perf_buffer__new(bpf_map__fd(skel->maps.pb), page_cnt, NULL, NULL, NULL, NULL);
+	pb = perf_buffer__new(bpf_map__fd(skel->maps.pb), page_cnt, handle_event, lost_event, NULL, NULL);
 	if(libbpf_get_error(pb))
 	{
 		fprintf(stderr, "Failed to create perf buffer. Errno: %d, message: %s\n", errno, strerror(errno));
@@ -91,7 +101,8 @@ int main(int argc, char **argv)
 
 	while(true)
 	{
-		printf("Running...\n");
+		printf("Running... \n");
+		perf_buffer__consume(pb);
 		sleep(2);
 	}
 

@@ -18,7 +18,16 @@ struct event
 };
 
 SEC("tp/raw_syscalls/sys_enter")
-int perfbuf_out(void *ctx)
+int sys_enter_trace(void *ctx)
+{
+	struct event e = {0};
+	e.cpu_id = (u32)bpf_get_smp_processor_id();
+	bpf_perf_event_output(ctx, &pb, BPF_F_CURRENT_CPU, &e, sizeof(e));
+	return 0;
+}
+
+SEC("tp/raw_syscalls/sys_enter")
+int sys_exit_trace(void *ctx)
 {
 	struct event e = {0};
 	e.cpu_id = (u32)bpf_get_smp_processor_id();

@@ -23,7 +23,22 @@ struct event
 };
 
 SEC("tp/raw_syscalls/sys_enter")
-int ringbuf_out(void *ctx)
+int sys_enter_trace(void *ctx)
+{
+	struct event e = {0};
+	e.cpu_id = (u32)bpf_get_smp_processor_id();
+	struct ringbuf_map *rb = (struct ringbuf_map *)bpf_map_lookup_elem(&ringbuf_maps, &e.cpu_id);
+	if(!rb)
+	{
+		return 0;
+	}
+
+	bpf_ringbuf_output(rb, &e, sizeof(e), BPF_RB_NO_WAKEUP);
+	return 0;
+}
+
+SEC("tp/raw_syscalls/sys_exit")
+int sys_exit_trace(void *ctx)
 {
 	struct event e = {0};
 	e.cpu_id = (u32)bpf_get_smp_processor_id();
