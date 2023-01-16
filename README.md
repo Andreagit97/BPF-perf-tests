@@ -2,6 +2,7 @@
 
 This repository follows the same rules of `libbpf-boostrap`.
 It should correctly work only on `x86_64` architectures!
+Kernel version requirements depend on the BPF program you want to use.
 
 ## Configure the environment 💡
 
@@ -22,10 +23,9 @@ git submodule update
 
 * `libelf`
 * `zlib`
+* `clang` and `llvm` (you need a version `>=12` if you use vmlinux programs)
 * `make`
-* if you cannot use the `bpftool` in this repo, you need to have it installed and change the makefile according to its location, or move it to the `tools` directory
-
-> Please note: Some examples could require kernel versions `>=4.17` since we use raw tracepoints
+* `bpftool` (you can use the one you find under `tool` directory, otherwise provide the `Makefile` with a custom `bpftool` through the `BPFTOOL` var.
 
 ## Build and Run a supported application 🏗️
 
@@ -34,6 +34,8 @@ Here we consider `page_faults_1` as an example:
 ```bash
 cd templates
 make page_faults_1
+# you can easily pass some custom variables to make command
+make CLANG=clang-14 LLVM_STRIP=llvm-strip-14 BPFTOOL=my-bpftool page_faults_1 
 sudo ./page_faults_1
 ```
 
