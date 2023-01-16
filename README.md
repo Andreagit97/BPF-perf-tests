@@ -1,6 +1,7 @@
 # BPF-perf-test 🏎️
 
 This repository follows the same rules of `libbpf-boostrap`.
+It should correctly work only on `x86_64` architectures!
 
 ## Configure the environment 💡
 
@@ -43,3 +44,4 @@ sudo ./page_faults_1
 * `tail_table`: use BPF tail call logic.
 * `ringbuf_output`: use a PER-CPU ring buffer.
 * `perfbuf_output`: use a PER-CPU perf buffer.
+* `btf_loading`: check BTF file correct loading.

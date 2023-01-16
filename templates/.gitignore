@@ -3,3 +3,4 @@
 /tail_table
 /ringbuf_output
 /perfbuf_output
+/btf_loading
