@@ -39,6 +39,24 @@ make CLANG=clang-14 LLVM_STRIP=llvm-strip-14 BPFTOOL=my-bpftool page_faults_1
 sudo ./page_faults_1
 ```
 
+## Dockerfile
+
+Build a docker image from the root project directory:
+
+```bash
+docker build --tag andreater/bpf-tests -f Dockerfile .
+```
+
+Run it:
+
+```bash
+# As a default the container runs `ringbuf_output`, but you can run all other examples. 
+docker run --rm -i -t \
+           --privileged \
+           -v /sys/kernel/tracing:/sys/kernel/tracing:ro \
+           --entrypoint=/bin/bash andreater/bpf-tests:latest
+```
+
 ## Available programs
 
 * `page_faults_1`: almost empty instrumentation with 2 tracepoints `page_fault_user` and `page_fault_kernel`.
