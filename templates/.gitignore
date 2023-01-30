@@ -4,3 +4,4 @@
 /ringbuf_output
 /perfbuf_output
 /btf_loading
+/ktime
