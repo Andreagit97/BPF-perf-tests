@@ -10,6 +10,7 @@ unsigned long stop = 0;
 SEC("tp_btf/sys_enter")
 int sys_enter_trace(void *ctx)
 {
-    stop++;
+
+	stop++;
 	return 0;
 }

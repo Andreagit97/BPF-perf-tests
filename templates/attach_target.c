@@ -1,7 +1,8 @@
 #include "helpers.h"
 #include "attach_target.skel.h"
 
-/* In this program we test auto attach features of libbpf with simple tracepoints */
+/* In this program we test auto attach features of libbpf with simple
+ * tracepoints */
 
 int main(int argc, char **argv)
 {
@@ -21,7 +22,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Set attach type before loading  */
-	struct bpf_program *bpf_prog = bpf_object__find_program_by_name(skel->obj, "example");
+	struct bpf_program *bpf_prog =
+		bpf_object__find_program_by_name(skel->obj, "example");
 	if(!bpf_prog)
 	{
 		fprintf(stderr, "Failed to obtain prog 'example'\n");
@@ -56,11 +58,13 @@ int main(int argc, char **argv)
 	int key = 0;
 	if(bpf_map_update_elem(tail_table_fd, &key, &bpf_prog_fd, BPF_ANY))
 	{
-		fprintf(stderr, "Unable to update the tail map: %d, %s\n", errno, strerror(errno));
+		fprintf(stderr, "Unable to update the tail map: %d, %s\n",
+			errno, strerror(errno));
 		goto cleanup;
 	}
 
-	/* we don't want to attach the example program it should be called just with tail calls */
+	/* we don't want to attach the example program it should be called just
+	 * with tail calls */
 	bpf_program__set_autoattach(bpf_prog, false);
 
 	/* Attach tracepoint handler */

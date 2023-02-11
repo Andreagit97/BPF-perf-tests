@@ -16,6 +16,7 @@ struct
 SEC("tp/raw_syscalls/sys_enter")
 int test(void *ctx)
 {
+
 	bpf_tail_call(ctx, &tail_table, 0);
 	return 0;
 }
