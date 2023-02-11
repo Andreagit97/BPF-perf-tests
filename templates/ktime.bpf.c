@@ -4,7 +4,8 @@
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
-/* BPF ringbuf map */
+/* We need at least kernel version 5.8 for BPF ringbuf map */
+
 struct
 {
 	__uint(type, BPF_MAP_TYPE_RINGBUF);
@@ -25,7 +26,7 @@ int test(void *ctx)
 	/* Get the new timestamp */
 	uint64_t new_ts = bpf_ktime_get_boot_ns();
 
-	/* Check if we could have an out of order using kernel helpers */
+	/* Check if we could have an out-of-order using kernel helpers */
 	if(new_ts < old_ts)
 	{
 		bpf_printk("NEW: %ld, OLD: %ld, DIFF: %ld", new_ts, old_ts, old_ts - new_ts);

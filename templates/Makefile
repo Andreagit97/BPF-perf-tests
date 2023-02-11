@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: (LGPL-2.1 OR BSD-2-Clause)
 OUTPUT := .output
 CLANG ?= clang
+BIN ?= ./bin
 LLVM_STRIP ?= llvm-strip
 BPFTOOL ?= $(abspath ../tools/bpftool)
 LIBBPF_SRC := $(abspath ../libbpf/src)
 LIBBPF_OBJ := $(abspath $(OUTPUT)/libbpf.a)
-VMLINUX := ../vmlinux/vmlinux.h
+VMLINUX ?= ../vmlinux/vmlinux.h
 # Use our own libbpf API headers and Linux UAPI headers distributed with
 # libbpf to avoid dependency on system-wide headers, which could be missing or
 # outdated
@@ -62,7 +63,7 @@ $(LIBBPF_OBJ): $(wildcard $(LIBBPF_SRC)/*.[ch] $(LIBBPF_SRC)/Makefile) | $(OUTPU
 $(OUTPUT)/%.bpf.o: %.bpf.c $(LIBBPF_OBJ) $(wildcard %.h) $(VMLINUX) | $(OUTPUT)
 	$(call msg,BPF,$@)
 	$(Q)$(CLANG) -g -O2 -target bpf -D__TARGET_ARCH_$(ARCH) $(INCLUDES) $(CLANG_BPF_SYS_INCLUDES) -c $(filter %.c,$^) -o $@
-	$(Q)$(LLVM_STRIP) -g $@ # strip useless DWARF info
+	$(Q)$(LLVM_STRIP) -g $@ || true
 
 # Generate BPF skeletons
 $(OUTPUT)/%.skel.h: $(OUTPUT)/%.bpf.o | $(OUTPUT)
@@ -76,10 +77,15 @@ $(OUTPUT)/%.o: %.c $(wildcard %.h) | $(OUTPUT)
 	$(call msg,CC,$@)
 	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $(filter %.c,$^) -o $@
 
+# Helpers object file
+$(OUTPUT)/helpers.o: helpers.c helpers.h | $(OUTPUT)
+	$(call msg,CC,$@)
+	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $(filter %.c,$^) -o $@
+
 # Build application binary
-$(APPS): %: $(OUTPUT)/%.o $(LIBBPF_OBJ) | $(OUTPUT)
+$(APPS): %: $(OUTPUT)/%.o $(LIBBPF_OBJ) $(OUTPUT)/helpers.o | $(OUTPUT)
 	$(call msg,BINARY,$@)
-	$(Q)$(CC) $(CFLAGS) $^ -lelf -lz -o $@
+	$(Q)$(CC) $(CFLAGS) $^ -lelf -lz -o $(BIN)/$@
 
 # delete failed targets
 .DELETE_ON_ERROR:

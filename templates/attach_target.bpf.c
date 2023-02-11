@@ -1,6 +1,8 @@
 #include <vmlinux.h>
 #include <bpf/bpf_helpers.h>
 
+/* We need at least kernel version 4.14 */
+
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 struct
@@ -11,15 +13,14 @@ struct
 	__type(value, int);
 } tail_table SEC(".maps");
 
-
-SEC("tp_btf/sys_enter")
+SEC("tp/raw_syscalls/sys_enter")
 int test(void *ctx)
 {
 	bpf_tail_call(ctx, &tail_table, 0);
 	return 0;
 }
 
-SEC("tp_btf")
+SEC("tp")
 int example(void *ctx)
 {
 	bpf_printk("called");

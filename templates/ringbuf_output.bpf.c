@@ -1,6 +1,8 @@
 #include <vmlinux.h>
 #include <bpf/bpf_helpers.h>
 
+/* We need at least kernel version 5.8 for BPF ringbuf map */
+
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 struct ringbuf_map

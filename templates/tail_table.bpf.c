@@ -1,6 +1,8 @@
 #include <vmlinux.h>
 #include <bpf/bpf_helpers.h>
 
+/* We need at least kernel version 4.14 */
+
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
 
 struct

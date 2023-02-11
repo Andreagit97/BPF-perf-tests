@@ -1,25 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/resource.h>
-#include <bpf/libbpf.h>
-#include <bpf/bpf.h>
-#include <signal.h>
-#include <errno.h>
+#include "helpers.h"
 #include "ringbuf_output.skel.h"
-
-#define DEFAULT_BUFFER_DIM 1024 * 1024 /* 1 MB */
-#define BUFFER_DIM "--buf"
-
-static void sig_handler(int sig)
-{
-	exit(EXIT_SUCCESS);
-}
-
-static int libbpf_print_fn(enum libbpf_print_level level, const char *format, va_list args)
-{
-	return vfprintf(stderr, format, args);
-}
 
 int handle_event(void *ctx, void *data, size_t data_sz)
 {
@@ -28,37 +8,18 @@ int handle_event(void *ctx, void *data, size_t data_sz)
 
 int main(int argc, char **argv)
 {
-	struct ringbuf_output_bpf *skel;
-	int err = 0;
+	configuration conf = init_configuration(argc, argv);
+	if(conf.err)
+	{
+		fprintf(stderr, "Error in the configuration\n");
+		return 1;
+	}
+
+	/* Open BPF application */
 	int *ringbufs_fds = NULL;
 	struct ring_buffer *rb_manager = NULL;
 	int ringubuf_array_fd = -1;
-
-	/* Set single buffer dimension */
-	uint32_t buf_dim = DEFAULT_BUFFER_DIM;
-	for(int i = 0; i < argc; i++)
-	{
-		if(!strcmp(argv[i], BUFFER_DIM))
-		{
-			if(!(i + 1 < argc))
-			{
-				fprintf(stderr, "You need to specify also the event buffer size! Bye!\n");
-				exit(EXIT_FAILURE);
-			}
-			buf_dim = strtoul(argv[++i], NULL, 10);
-		}
-	}
-
-	libbpf_set_strict_mode(LIBBPF_STRICT_ALL);
-	/* Set up libbpf errors and debug info callback */
-	libbpf_set_print(libbpf_print_fn);
-
-	/* Clean handling of Ctrl-C */
-	signal(SIGINT, sig_handler);
-	signal(SIGTERM, sig_handler);
-
-	/* Open BPF application */
-	skel = ringbuf_output_bpf__open();
+	struct ringbuf_output_bpf *skel = ringbuf_output_bpf__open();
 	if(!skel)
 	{
 		fprintf(stderr, "Failed to open BPF skeleton. Errno: %d, message: %s\n", errno, strerror(errno));
@@ -66,15 +27,15 @@ int main(int argc, char **argv)
 	}
 
 	/* Prepare the ringbuf array */
-	int inner_map_fd = bpf_map_create(BPF_MAP_TYPE_RINGBUF, NULL, 0, 0, buf_dim, NULL);
+	int inner_map_fd = bpf_map_create(BPF_MAP_TYPE_RINGBUF, NULL, 0, 0, conf.buf_dim, NULL);
 	if(inner_map_fd < 0)
 	{
-		fprintf(stderr, "Failed to create inner map with dim: %d. Errno: %d, message: %s\n", buf_dim, errno, strerror(errno));
+		fprintf(stderr, "Failed to create inner map with dim: %d. Errno: %d, message: %s\n", conf.buf_dim, errno, strerror(errno));
 		return errno;
 	}
 
-	err = bpf_map__set_inner_map_fd(skel->maps.ringbuf_maps, inner_map_fd);
-	if(err)
+	conf.err = bpf_map__set_inner_map_fd(skel->maps.ringbuf_maps, inner_map_fd);
+	if(conf.err)
 	{
 		fprintf(stderr, "Failed to set the dummy inner map inside the ringbuf array. Errno: %d, message: %s\n", errno, strerror(errno));
 		return errno;
@@ -89,8 +50,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Load & verify BPF programs */
-	err = ringbuf_output_bpf__load(skel);
-	if(err)
+	conf.err = ringbuf_output_bpf__load(skel);
+	if(conf.err)
 	{
 		fprintf(stderr, "Failed to load and verify BPF skeleton. Errno: %d, message: %s\n", errno, strerror(errno));
 		goto cleanup;
@@ -105,7 +66,7 @@ int main(int argc, char **argv)
 	/* Create ring buffer maps. */
 	for(int i = 0; i < n_cpus; i++)
 	{
-		ringbufs_fds[i] = bpf_map_create(BPF_MAP_TYPE_RINGBUF, NULL, 0, 0, buf_dim, NULL);
+		ringbufs_fds[i] = bpf_map_create(BPF_MAP_TYPE_RINGBUF, NULL, 0, 0, conf.buf_dim, NULL);
 		if(ringbufs_fds[i] <= 0)
 		{
 			fprintf(stderr, "Failed to create the ringbuf map for CPU '%d'. Errno: %d, message: %s\n", i, errno, strerror(errno));
@@ -153,15 +114,21 @@ int main(int argc, char **argv)
 	}
 
 	/* Attach tracepoint handler */
-	err = ringbuf_output_bpf__attach(skel);
-	if(err)
+	conf.err = ringbuf_output_bpf__attach(skel);
+	if(conf.err)
 	{
 		fprintf(stderr, "Failed to attach BPF skeleton. Errno: %d, message: %s\n", errno, strerror(errno));
 		goto cleanup;
 	}
 
-	printf("Chosen PER-CPU buffer size: %d\n", buf_dim);
+	if(is_dry_run(conf))
+	{
+		conf.err = 0;
+		fprintf(stdout, "OK!\n");
+		goto cleanup;
+	}
 
+	printf("Chosen PER-CPU buffer size: %d\n", conf.buf_dim);
 	printf("Start capture...\n");
 
 	while(true)
@@ -188,5 +155,5 @@ cleanup:
 		ring_buffer__free(rb_manager);
 	}
 	ringbuf_output_bpf__destroy(skel);
-	return err;
+	return conf.err;
 }

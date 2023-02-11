@@ -1,6 +1,8 @@
 #include <linux/bpf.h>
 #include <bpf/bpf_helpers.h>
 
+/* We need at least kernel 4.17 for raw tracepoints */
+
 #define TASK_COMM_LEN 16
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
@@ -34,7 +36,6 @@ struct
 	__type(value, struct event);
 } heap SEC(".maps");
 
-// SEC("tp/exceptions/page_fault_user")
 SEC("raw_tp/page_fault_user")
 int pf_user(void *ctx)
 {
@@ -54,7 +55,6 @@ int pf_user(void *ctx)
 	return 0;
 }
 
-// SEC("tp/exceptions/page_fault_kernel")
 SEC("raw_tp/page_fault_kernel")
 int pf_kernel(void *ctx)
 {
