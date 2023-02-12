@@ -1,0 +1,41 @@
+name: CI build
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-and-build:
+    runs-on: ubuntu-22.04
+    steps:
+
+      - name: Checkout Libs ⤵️
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install deps ⛓️
+        run: |
+          sudo apt update -y
+          sudo apt install -y --no-install-recommends ca-certificates libtool git make clang-14 llvm-14 libelf-dev linux-headers-$(uname -r) pkg-config build-essential
+
+      - name: Build and run all progs (DRY-RUN mode) 🏗️
+        run: |
+          git submodule init
+          git submodule update
+          cd templates && sudo make CLANG=clang-14 LLVM_STRIP=llvm-strip-14 dry-run
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./templates/run
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/bpf-tests:latest

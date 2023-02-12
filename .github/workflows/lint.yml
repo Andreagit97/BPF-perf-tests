@@ -1,0 +1,37 @@
+name: CI lint
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-project-linting:
+    runs-on: ubuntu-22.04
+    steps:
+
+      - name: Checkout Libs ⤵️
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install deps ⛓️
+        run: |
+          sudo apt update -y
+          sudo apt install -y --no-install-recommends ca-certificates pip git
+          pip install pre-commit
+
+      - name: Run pre-commit ©️
+        run: |
+          pre-commit run --all-files 
+
+      - name: Generate the git-diff 🚒
+        if: failure()
+        run: git diff > lint.patch
+
+      - name: Upload the git diff artifact 📦
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint.patch
+          path: ./lint.patch
