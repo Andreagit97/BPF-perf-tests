@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
   if (page_size != 0) {
     page_cnt = conf.buf_dim / page_size;
   } else {
+    conf.err = 1;
     fprintf(stderr,
             "Failed to get page size from `getpagesize()`. Errno: "
             "%d, message: %s\n",
@@ -52,6 +53,7 @@ int main(int argc, char **argv) {
 
   pb = perf_buffer__new(bpf_map__fd(skel->maps.pb), page_cnt, handle_event, lost_event, NULL, NULL);
   if (libbpf_get_error(pb)) {
+    conf.err = 1;
     fprintf(stderr,
             "Failed to create perf buffer. Errno: %d, message: "
             "%s\n",

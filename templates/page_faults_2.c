@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
   struct perf_buffer *pb = NULL;
   struct page_faults_2_bpf *skel = page_faults_2_bpf__open();
   if (!skel) {
+    conf.err = 1;
     fprintf(stderr, "Failed to open BPF skeleton\n");
     return 1;
   }
@@ -66,7 +67,7 @@ int main(int argc, char **argv) {
   pb =
       perf_buffer__new(bpf_map__fd(skel->maps.pb), page_cnt, handle_event, handle_drop, NULL, NULL);
   if (libbpf_get_error(pb)) {
-    conf.err = -1;
+    conf.err = 1;
     fprintf(stderr, "Failed to create perf buffer\n");
     goto cleanup;
   }

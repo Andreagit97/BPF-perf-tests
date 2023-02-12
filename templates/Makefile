@@ -1,6 +1,7 @@
 OUTPUT := .output
 CLANG ?= clang
 BIN ?= ./run
+DRY-RUN-EXE ?= ../tools/dry_run.sh
 LLVM_STRIP ?= llvm-strip
 BPFTOOL ?= $(abspath ../tools/bpftool)
 LIBBPF_SRC := $(abspath ../libbpf/src)
@@ -44,9 +45,13 @@ all: $(APPS)
 .PHONY: clean
 clean:
 	$(call msg,CLEAN)
-	$(Q)rm -rf $(OUTPUT) $(APPS)
+	$(Q)rm -rf $(OUTPUT) $(APPS) $(BIN)
 
 $(OUTPUT) $(OUTPUT)/libbpf:
+	$(call msg,MKDIR,$@)
+	$(Q)mkdir -p $@
+
+$(BIN):
 	$(call msg,MKDIR,$@)
 	$(Q)mkdir -p $@
 
@@ -82,9 +87,13 @@ $(OUTPUT)/helpers.o: helpers.c helpers.h | $(OUTPUT)
 	$(Q)$(CC) $(CFLAGS) $(INCLUDES) -c $(filter %.c,$^) -o $@
 
 # Build application binary
-$(APPS): %: $(OUTPUT)/%.o $(LIBBPF_OBJ) $(OUTPUT)/helpers.o | $(OUTPUT)
+$(APPS): %: $(OUTPUT)/%.o $(LIBBPF_OBJ) $(OUTPUT)/helpers.o | $(OUTPUT) $(BIN)
 	$(call msg,BINARY,$@)
 	$(Q)$(CC) $(CFLAGS) $^ -lelf -lz -o $(BIN)/$@
+
+dry-run: $(APPS)
+	$(call msg,DRY-RUN-MODE,$^)
+	$(DRY-RUN-EXE) $(BIN)
 
 # delete failed targets
 .DELETE_ON_ERROR:

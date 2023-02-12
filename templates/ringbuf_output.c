@@ -26,6 +26,7 @@ int main(int argc, char **argv) {
   /* Prepare the ringbuf array */
   int inner_map_fd = bpf_map_create(BPF_MAP_TYPE_RINGBUF, NULL, 0, 0, conf.buf_dim, NULL);
   if (inner_map_fd < 0) {
+    conf.err = 1;
     fprintf(stderr,
             "Failed to create inner map with dim: %d. Errno: %d, "
             "message: %s\n",
@@ -45,6 +46,7 @@ int main(int argc, char **argv) {
   /* We will have a ring buffer for every CPU */
   int n_cpus = libbpf_num_possible_cpus();
   if (bpf_map__set_max_entries(skel->maps.ringbuf_maps, n_cpus)) {
+    conf.err = 1;
     fprintf(stderr,
             "Failed to set max entries for the ringbuf_array to "
             "'%d'. Errno: %d, message: %s\n",
@@ -72,6 +74,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < n_cpus; i++) {
     ringbufs_fds[i] = bpf_map_create(BPF_MAP_TYPE_RINGBUF, NULL, 0, 0, conf.buf_dim, NULL);
     if (ringbufs_fds[i] <= 0) {
+      conf.err = 1;
       fprintf(stderr,
               "Failed to create the ringbuf map for CPU "
               "'%d'. Errno: %d, message: %s\n",
@@ -83,6 +86,7 @@ int main(int argc, char **argv) {
   /* Create the ringbuf manager */
   rb_manager = ring_buffer__new(ringbufs_fds[0], handle_event, NULL, NULL);
   if (!rb_manager) {
+    conf.err = 1;
     fprintf(stderr,
             "Failed to instantiate the ringbuf manager. Errno: %d, "
             "message: %s\n",
@@ -96,6 +100,7 @@ int main(int argc, char **argv) {
    */
   for (int i = 1; i < n_cpus; i++) {
     if (ring_buffer__add(rb_manager, ringbufs_fds[i], handle_event, NULL)) {
+      conf.err = 1;
       fprintf(stderr,
               "Failed to add the ringbuf map for CPU %d into "
               "the manager. Errno: %d, message: %s\n",
@@ -108,6 +113,7 @@ int main(int argc, char **argv) {
    * `BPF_MAP_TYPE_RINGBUF`. */
   ringubuf_array_fd = bpf_map__fd(skel->maps.ringbuf_maps);
   if (ringubuf_array_fd <= 0) {
+    conf.err = 1;
     fprintf(stderr,
             "Failed to get the ringubuf_array. Errno: %d, message: "
             "%s\n",
@@ -118,6 +124,7 @@ int main(int argc, char **argv) {
   /* We need to associate every CPU to the right ring buffer */
   for (int i = 0; i < n_cpus; i++) {
     if (bpf_map_update_elem(ringubuf_array_fd, &i, &ringbufs_fds[i], BPF_ANY)) {
+      conf.err = 1;
       fprintf(stderr,
               "Failed to add the ringbuf map for CPU '%d' to "
               "ringbuf '%d'. Errno: %d, message: %s\n",

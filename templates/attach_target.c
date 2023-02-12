@@ -21,6 +21,7 @@ int main(int argc, char **argv) {
   /* Set attach type before loading  */
   struct bpf_program *bpf_prog = bpf_object__find_program_by_name(skel->obj, "example");
   if (!bpf_prog) {
+    conf.err = 1;
     fprintf(stderr, "Failed to obtain prog 'example'\n");
     goto cleanup;
   }
@@ -37,18 +38,21 @@ int main(int argc, char **argv) {
   /* Fill tail table */
   int tail_table_fd = bpf_map__fd(skel->maps.tail_table);
   if (tail_table_fd <= 0) {
+    conf.err = 1;
     fprintf(stderr, "Failed to load tail table\n");
     goto cleanup;
   }
 
   int bpf_prog_fd = bpf_program__fd(bpf_prog);
   if (bpf_prog_fd <= 0) {
+    conf.err = 1;
     fprintf(stderr, "Unable to get the prog fd 1\n");
     goto cleanup;
   }
 
   int key = 0;
   if (bpf_map_update_elem(tail_table_fd, &key, &bpf_prog_fd, BPF_ANY)) {
+    conf.err = 1;
     fprintf(stderr, "Unable to update the tail map: %d, %s\n", errno, strerror(errno));
     goto cleanup;
   }

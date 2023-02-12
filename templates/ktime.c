@@ -25,6 +25,7 @@ int main(int argc, char **argv) {
   struct ring_buffer *rb_manager = NULL;
   struct ktime_bpf *skel = ktime_bpf__open();
   if (!skel) {
+    conf.err = 1;
     fprintf(stderr, "Failed to open BPF skeleton\n");
     return 1;
   }
@@ -39,7 +40,7 @@ int main(int argc, char **argv) {
   /* Set up ring buffer polling */
   rb_manager = ring_buffer__new(bpf_map__fd(skel->maps.rb), handle_event, NULL, NULL);
   if (!rb_manager) {
-    conf.err = -1;
+    conf.err = 1;
     fprintf(stderr, "Failed to create ring buffer\n");
     goto cleanup;
   }
