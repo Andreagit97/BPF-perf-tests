@@ -1,6 +1,6 @@
 OUTPUT := .output
 CLANG ?= clang
-BIN ?= ./bin
+BIN ?= ./run
 LLVM_STRIP ?= llvm-strip
 BPFTOOL ?= $(abspath ../tools/bpftool)
 LIBBPF_SRC := $(abspath ../libbpf/src)
