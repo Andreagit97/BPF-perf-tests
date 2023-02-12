@@ -8,9 +8,7 @@ char LICENSE[] SEC("license") = "Dual BSD/GPL";
 unsigned long stop = 0;
 
 SEC("tp_btf/sys_enter")
-int sys_enter_trace(void *ctx)
-{
-
-	stop++;
-	return 0;
+int sys_enter_trace(void *ctx) {
+  stop++;
+  return 0;
 }

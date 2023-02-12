@@ -13,12 +13,11 @@
 #define VERBOSE "--verbose"
 #define DRY_RUN "--dry-run"
 
-typedef struct configuration
-{
-	bool verbose;
-	bool dry_run;
-    int err;
-	uint32_t buf_dim;
+typedef struct configuration {
+  bool verbose;
+  bool dry_run;
+  int err;
+  uint32_t buf_dim;
 } configuration;
 
 bool is_dry_run(configuration conf);

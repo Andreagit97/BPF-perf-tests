@@ -4,8 +4,8 @@
 #define MAX_CPU_NUMBER 128
 
 struct event {
-	int cpu_id;
-	uint64_t ts;
+  int cpu_id;
+  uint64_t ts;
 };
 
 #endif

@@ -23,7 +23,7 @@ ifneq ($(CLANG_FORMAT_VERSION), $(CLANG_FORMAT_DESIRED_VERSION))
 	@echo "${CLANG_FORMAT_EXE} version is not '${CLANG_FORMAT_DESIRED_VERSION}'. Actual version is '${CLANG_FORMAT_VERSION}'"
 	@exit 1
 endif
-	@echo "Correct version of clang-format: '${CLANG_FORMAT_VERSION}'" 
+	@echo "Correct version of clang-format: '${CLANG_FORMAT_VERSION}'"
 
 .PHONY: format-clang
 format-clang: clang-format-require
@@ -44,10 +44,11 @@ ifeq (, $(CMAKE_FORMAT_VERSION))
 	@exit 1
 endif
 
-ifneq ("$(CMAKE_FORMAT_VERSION)", $(CMAKE_FORMAT_DESIRED_VERSION))
+ifneq ($(CMAKE_FORMAT_VERSION), $(CMAKE_FORMAT_DESIRED_VERSION))
 	@echo "${CMAKE_FORMAT_EXE} version is not '${CMAKE_FORMAT_DESIRED_VERSION}'. Actual version is '${CMAKE_FORMAT_VERSION}'"
 	@exit 1
 endif
+	@echo "Correct version of cmake-format: '${CMAKE_FORMAT_VERSION}'"
 
 .PHONY: format-cmake
 format-cmake: cmake-format-require
