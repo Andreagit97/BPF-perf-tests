@@ -25,7 +25,7 @@ git submodule update
 * `zlib`
 * `clang` and `llvm` (you need a version `>=12` if you use vmlinux programs)
 * `make`
-* `bpftool` (you can use the one you find under `tool` directory, otherwise provide the `Makefile` with a custom `bpftool` through the `BPFTOOL` var.
+* `bpftool` (you can use the one you find under `tool` directory, otherwise provide the `Makefile` with a custom `bpftool` through the `BPFTOOL` var)
 
 ## Build and Run a supported application 🏗️
 
@@ -36,26 +36,14 @@ cd templates
 make page_faults_1
 # you can easily pass some custom variables to make command
 make CLANG=clang-14 LLVM_STRIP=llvm-strip-14 BPFTOOL=my-bpftool page_faults_1 
-sudo ./page_faults_1
+sudo ./run/page_faults_1
 ```
 
-## Dockerfile
+All programs support the following CLI options:
 
-Build a docker image from the root project directory:
-
-```bash
-docker build --tag andreater/bpf-tests -f Dockerfile .
-```
-
-Run it:
-
-```bash
-# As a default the container runs `ringbuf_output`, but you can run all other examples. 
-docker run --rm -i -t \
-           --privileged \
-           -v /sys/kernel/tracing:/sys/kernel/tracing:ro \
-           --entrypoint=/bin/bash andreater/bpf-tests:latest
-```
+* `--verbose` shows `libbpf` loading logs.
+* `--dry-run` checks only if the program is correctly loaded.
+* `--buf <dim_in_bytes>` if the program uses buffers, this will be the dimension of the buffers.
 
 ## Available programs
 
@@ -65,3 +53,25 @@ docker run --rm -i -t \
 * `ringbuf_output`: use a PER-CPU ring buffer.
 * `perfbuf_output`: use a PER-CPU perf buffer.
 * `btf_loading`: check BTF file correct loading.
+
+## Dockerfile
+
+The CI builds a docker image containing all these executables.
+
+As a default, the container runs the `ringbuf_output` executable:
+
+```bash
+docker run --rm -i -t \
+           --privileged \
+           -v /sys/kernel/tracing:/sys/kernel/tracing:ro \
+           andreater/bpf-tests:latest
+```
+
+You can run all other programs by calling them explicitly:
+
+```bash
+docker run --rm -i -t \
+           --privileged \
+           -v /sys/kernel/tracing:/sys/kernel/tracing:ro \
+           andreater/bpf-tests:latest tail_table --verbose --dry-run
+```
