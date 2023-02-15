@@ -149,7 +149,7 @@ int main(int argc, char **argv) {
     goto cleanup;
   }
 
-  printf("Chosen PER-CPU buffer size: %d\n", conf.buf_dim);
+  printf("Chosen PER-CPU buffer size: %u\n", conf.buf_dim);
   printf("Start capture...\n");
 
   while (true) {
