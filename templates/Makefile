@@ -14,7 +14,7 @@ INCLUDES := -I$(OUTPUT) -I../libbpf/include/uapi -I$(dir $(VMLINUX))
 CFLAGS := -g -Wall
 ARCH := $(shell uname -m | sed 's/x86_64/x86/' | sed 's/aarch64/arm64/' | sed 's/ppc64le/powerpc/' | sed 's/mips.*/mips/')
 
-APPS = page_faults_1 page_faults_2 tail_table ringbuf_output perfbuf_output btf_loading ktime attach_target single_syscall fentry_limit
+APPS = page_faults_1 page_faults_2 tail_table ringbuf_output perfbuf_output btf_loading ktime attach_target single_syscall fentry_limit fentry_attach
 
 # Get Clang's default includes on this system. We'll explicitly add these dirs
 # to the includes list when compiling with `-target bpf` because otherwise some

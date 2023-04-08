@@ -54,6 +54,8 @@ All programs support the following CLI options:
 * `perfbuf_output`: use a PER-CPU perf buffer.
 * `btf_loading`: check BTF file correct loading.
 
+(Other programs could be available please check the `templates` directory)
+
 ## Dockerfile
 
 The CI builds a docker image containing all these executables.
